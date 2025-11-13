@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Senacmon Arena – MVP</title>
+<style>
+  :root{
+    --ink:#0b1220; --ink-2:#111a2e; --panel:#0e1627; --muted:#8fa4cc;
+    --good:#6CFF94; --bad:#ff6b6b; --warn:#ffd34d; --berry:#ff7ad1; --gold:#ffd34d; --ring:#1f2b45;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family: ui-rounded, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, Arial;
+    background: radial-gradient(1200px 800px at 65% -20%, #1a2541 0%, #0b1220 55%) fixed;
+    color:#eaf0ff;
+    overflow:hidden;
+  }
+
+  /* Topbar (dados + status + HUD) */
+  .topbar{
+    position:fixed; left:12px; top:12px; right:12px;
+    height:72px; display:flex; align-items:flex-start; gap:10px;
+    z-index:50; pointer-events:none;
+  }
+  .dice{display:flex; gap:10px; pointer-events:auto;}
+  .die{
+    width:54px; height:54px; border-radius:14px;
+    background:#fff; color:#111; font-weight:900;
+    display:grid; place-items:center; font-size:22px;
+    box-shadow:0 10px 24px rgba(0,0,0,.35); position:relative; overflow:hidden;
+  }
+  .die.roll{animation: wobble .6s ease}
+  @keyframes wobble{
+    0%{transform:rotate(0) scale(1)}
+    35%{transform:rotate(10deg) scale(1.06)}
+    70%{transform:rotate(-8deg) scale(1.05)}
+    100%{transform:rotate(0) scale(1)}
+  }
+  .hud{display:flex; gap:12px; pointer-events:auto; margin-top:-2px; flex-wrap:wrap;}
+  .pill{
+    padding:8px 12px; border-radius:999px;
+    background:#223255; border:1px solid #2e3f68; color:#cfe0ff;
+    font-weight:800; letter-spacing:.2px; font-size:13px;
+  }
+  .pill .dot{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle}
+  .pill .num{font-weight:900; color:#fff}
+  .turnpill{background:#1b2a4f}
+  .msgbar{
+    margin-left:10px; pointer-events:auto; max-width:min(52vw, 680px);
+    background:linear-gradient(180deg, rgba(10,16,30,.88), rgba(10,16,30,.82));
+    border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:10px 14px;
+    font-size:14px; line-height:1.25; box-shadow:0 8px 20px rgba(0,0,0,.35);
+  }
+
+  /* Lateral direita – histórico */
+  .side{
+    position:fixed; top:0; right:0; width:340px; height:100%;
+    background:linear-gradient(180deg, rgba(12,18,35,.6), rgba(12,18,35,.15));
+    border-left:1px solid rgba(255,255,255,.06);
+    padding:80px 14px 14px;
+    overflow:auto; backdrop-filter: blur(6px);
+  }
+  .side h3{margin:0 0 10px 0; font-size:18px; letter-spacing:.6px}
+  .log{display:flex; flex-direction:column; gap:8px; font-size:14px}
+  .log .it{padding:8px 10px; border-radius:10px; background:#10192f; border:1px solid rgba(255,255,255,.06)}
+  .tag{font-weight:800; letter-spacing:.3px; margin-right:6px}
+  .ok{color:var(--good)} .bad{color:var(--bad)} .warn{color:var(--warn)}
+
+  /* Centro – tabuleiro */
+  .stageWrap{
+    position:fixed; inset:86px 352px 96px 12px; display:grid; place-items:center;
+  }
+  .stage{
+    width:min(92vmin, 920px); aspect-ratio:1/1; border-radius:22px; position:relative; overflow:hidden;
+    background:
+      radial-gradient(50% 60% at 50% 40%, rgba(90,120,220,.16), transparent 60%),
+      linear-gradient(180deg,#0d1430 0%, #0a1228 100%);
+    box-shadow:0 26px 60px rgba(0,0,0,.55), 0 0 0 2px rgba(255,255,255,.05) inset;
+  }
+  .board{position:absolute; inset:0; background-size:cover; background-position:center; background-repeat:no-repeat;}
+  .board::after{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(120px 120px at 10% 12%, rgba(255,255,255,.06), transparent 70%),
+      radial-gradient(160px 160px at 90% 88%, rgba(255,255,255,.06), transparent 70%);
+  }
+
+  /* Trilho (azul) ilustrativo */
+  .path-dot{position:absolute; width:10px; height:10px; background:#67a3ff; border-radius:50%; opacity:.18; pointer-events:none}
+
+  /* Peões */
+  .token{--s:84px; position:absolute; width:var(--s); height:var(--s); transform: translate(-50%, -50%); z-index:5;}
+  .token .bubble{
+    width:var(--s); height:var(--s); border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #ffffff, #bdc9ff 60%, #a4afff 100%);
+    box-shadow: 0 12px 24px rgba(0,0,0,.45), 0 0 26px rgba(130,150,255,.35) inset;
+    border:3px solid rgba(15,20,40,.45); position:absolute; inset:0;
+  }
+  .token.p2 .bubble{background: radial-gradient(circle at 35% 30%, #fff1f8, #ffc6e7 60%, #ff9bdc 100%);}
+  .token img{position:absolute; width:72%; left:14%; top:6%; filter: drop-shadow(0 8px 12px rgba(0,0,0,.45));}
+  .token .label{
+    position:absolute; bottom:-24px; left:50%; transform:translateX(-50%);
+    padding:2px 8px; border-radius:999px; font-size:12px; font-weight:800;
+    background:rgba(12,18,35,.8); border:1px solid rgba(255,255,255,.08);
+  }
+
+  /* Controles (inferior) */
+  .controls{
+    position:fixed; left:12px; right:352px; bottom:16px; display:flex; gap:12px; justify-content:center; z-index:20;
+  }
+  .btn{
+    padding:14px 22px; border-radius:16px; border:none; cursor:pointer; font-weight:900; letter-spacing:.3px; font-size:16px;
+    box-shadow:0 10px 0 #9e7a13, 0 0 22px rgba(255,211,77,.35);
+    background:linear-gradient(180deg,#ffd34d,#ffc42f); color:#231701; border:3px solid #9e7a13;
+  }
+  .btn:active{transform:translateY(2px); box-shadow:0 8px 0 #9e7a13}
+  .btn.secondary{
+    background:linear-gradient(180deg,#cfe0ff,#b8d2ff); border-color:#4b6fb4; color:#041024; box-shadow:0 10px 0 #2c4a83,0 0 22px rgba(120,170,255,.35)
+  }
+
+  /* Modal base */
+  .modal{position:fixed; inset:0; display:none; place-items:center; z-index:60; background:rgba(5,8,16,.55); backdrop-filter: blur(6px);}
+  .modal.on{display:grid;}
+  .card{
+    width:min(1080px, 92vw); max-height:86vh; overflow:auto;
+    background:#0d1529; border:1px solid rgba(255,255,255,.08); border-radius:20px; padding:18px 18px 22px;
+    box-shadow:0 30px 80px rgba(0,0,0,.6);
+  }
+  .row{display:flex; gap:14px; flex-wrap:wrap}
+  .seg{flex:1 1 440px; min-width:280px}
+  .hline{height:1px; background:rgba(255,255,255,.06); margin:10px 0 16px}
+  .okrow{display:flex; justify-content:flex-end; margin-top:10px}
+  .okbtn{padding:12px 18px; border-radius:12px; border:none; background:#ffd34d; color:#231701; font-weight:900; cursor:pointer}
+
+  /* Toggle */
+  .toggle{display:inline-flex; gap:8px; padding:6px; background:#0f1a33; border:1px solid rgba(255,255,255,.08); border-radius:12px;}
+  .toggle button{padding:8px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:900; letter-spacing:.2px; color:#cfe0ff; background:transparent;}
+  .toggle button.active{background:#203055}
+
+  /* Starters (suas imagens) */
+  .starters{display:grid; grid-template-columns:repeat(4, 1fr); gap:12px}
+  .starter{
+    height:180px; border-radius:14px; background:#0e1933; border:1px solid rgba(255,255,255,.06); position:relative; overflow:hidden; cursor:pointer;
+    display:grid; place-items:center;
+  }
+  .starter:hover{outline:2px solid #3aa9ff}
+  .starter.selected{outline:3px solid #ffd34d}
+  .starter img{max-height:120px; max-width:90%}
+  .starter .cap{position:absolute; bottom:8px; left:10px; right:10px; font-size:13px; color:#b7c9ff}
+
+  /* Modal de batalha */
+  .gridNums{display:grid; grid-template-columns:repeat(9, 1fr); gap:6px}
+  .numBtn{padding:8px 0; border-radius:10px; text-align:center; cursor:pointer; user-select:none; border:1px solid rgba(255,255,255,.15); background:#102044; font-weight:900}
+  .numBtn.on{outline:3px solid #ffd34d; background:#213366}
+  .field{display:flex; align-items:center; gap:8px; margin:6px 0}
+  .field input[type="number"]{width:110px; padding:8px; border-radius:10px; border:1px solid #2e3f68; background:#0f1c3a; color:#eaf0ff; font-weight:800}
+  .hint{font-size:12px; color:#9fb4e6}
+  .stat{font-weight:900}
+  .tiny{font-size:12px; opacity:.85}
+  .ok{color:var(--good)} .bad{color:var(--bad)} .warn{color:var(--warn)}
+  @media (max-width: 1160px){
+    .side{width:300px}
+    .stageWrap{right:312px}
+    .controls{right:312px}
+  }
+</style>
+</head>
+<body>
+
+  <!-- TOPO -->
+  <div class="topbar">
+    <div class="dice">
+      <div id="d1" class="die">—</div>
+      <div id="d2" class="die">—</div>
+    </div>
+
+    <div class="hud">
+      <div id="turnPill" class="pill turnpill">Vez de —</div>
+      <div id="hudP1" class="pill"><span class="dot" style="background:#8ea3ff"></span>P1 Berries: <span class="num" id="p1b">100</span></div>
+      <div id="hudP2" class="pill" style="display:none"><span class="dot" style="background:#ff9fe0"></span>P2 Berries: <span class="num" id="p2b">100</span></div>
+      <div class="pill">Rodada: <span class="num" id="hudRound">1</span>/<span class="num" id="hudRoundLim">10</span></div>
+    </div>
+
+    <div id="msg" class="msgbar">Escolha os jogadores e starters para começar.</div>
+  </div>
+
+  <!-- LADO DIREITO -->
+  <aside class="side">
+    <h3>Histórico</h3>
+    <div id="log" class="log"></div>
+  </aside>
+
+  <!-- CENTRO -->
+  <div class="stageWrap">
+    <div id="stage" class="stage">
+      <div id="board" class="board"></div>
+      <div id="pathDots"></div>
+      <!-- tokens via JS -->
+    </div>
+  </div>
+
+  <!-- CONTROLES -->
+  <div class="controls">
+    <button id="btnStart" class="btn">Iniciar</button>
+    <button id="btnRoll" class="btn secondary">🎲 Rolar</button>
+  </div>
+
+  <!-- MODAL: Config -->
+  <div id="cfg" class="modal on">
+    <div class="card">
+      <h2 style="margin:6px 6px 12px">Configurar partida</h2>
+      <div style="margin:6px 6px 10px">Escolha quantos jogadores e os starters.</div>
+
+      <div class="toggle" style="margin:6px">
+        <button id="t1" class="active">1 Jogador</button>
+        <button id="t2">2 Jogadores</button>
+      </div>
+
+      <div class="hline"></div>
+
+      <div class="row">
+        <section class="seg">
+          <h3 style="margin:6px 6px 8px">P1 – escolha o starter</h3>
+          <div id="gridP1" class="starters"></div>
+        </section>
+
+        <section id="segP2" class="seg" style="opacity:.35">
+          <h3 style="margin:6px 6px 8px">P2 – escolha o starter</h3>
+          <div id="gridP2" class="starters"></div>
+        </section>
+      </div>
+
+      <div class="okrow">
+        <button id="okCfg" class="okbtn">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Batalha -->
+  <div id="battle" class="modal">
+    <div class="card">
+      <h2 style="margin:6px 6px 0">Batalha!</h2>
+      <div id="battleOpp" class="tiny" style="margin:4px 6px 10px; color:#b7c9ff">Oponente: —</div>
+
+      <div class="row">
+        <section class="seg">
+          <h3 style="margin:6px 6px 8px">Aposta</h3>
+          <div class="toggle" style="margin:6px">
+            <button id="betNo" class="active">Sem aposta</button>
+            <button id="betYes">Apostar</button>
+          </div>
+
+          <div id="betBox" style="display:none; margin:6px">
+            <div class="field">
+              <label class="tiny" style="min-width:140px">Modo (1 ou 2 números):</label>
+              <div class="toggle">
+                <button id="m1" class="active">1 número</button>
+                <button id="m2">2 números</button>
+              </div>
+            </div>
+            <div class="field">
+              <label class="tiny" style="min-width:140px">Escolha números (1–9):</label>
+            </div>
+            <div id="numGrid" class="gridNums" style="margin:6px 0"></div>
+
+            <div class="field">
+              <label class="tiny" style="min-width:140px">Valor da aposta:</label>
+              <input id="betVal" type="number" min="10" max="50" step="1" value="10"/>
+              <span class="hint" id="betHint">Mínimo 10 | Máx 50</span>
+            </div>
+
+            <div class="field tiny">
+              <div>Multiplicador base: <span id="multBase" class="stat">3.0</span> • Ajuste elemental: <span id="multAdj" class="stat">0.0</span> • Total: <span id="multEff" class="stat">3.0</span></div>
+            </div>
+          </div>
+
+          <div class="hline"></div>
+          <div class="tiny">Regras: 1 número paga 3.0x, 2 números paga 1.8x. Vantagem elemental: +0.5x; desvantagem: −0.5x; neutro: 0.</div>
+        </section>
+
+        <section class="seg">
+          <h3 style="margin:6px 6px 8px">Resumo</h3>
+          <div id="battleSummary" class="tiny" style="line-height:1.45; color:#cfe0ff">—</div>
+        </section>
+      </div>
+
+      <div class="okrow">
+        <button id="okBattle" class="okbtn">Resolver</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ========= AUTO-DETECT DO CAMINHO DOS ASSETS ========= */
+const CANDIDATES = [
+  'src/static/', './src/static/', '../src/static/', '../../src/static/',
+  '/src/static/', '/static/', 'static/'
+];
+
+function testImage(url){
+  return new Promise(res=>{
+    const im = new Image();
+    im.onload  = ()=>res({ok:true, url});
+    im.onerror = ()=>res({ok:false, url});
+    // cache-buster pra não pegar do cache ao trocar candidato
+    im.src = url + (url.includes('?')?'&':'?') + 'cb=' + Date.now();
+  });
+}
+
+async function detectAssetsBase(anchor='pokeball.png'){
+  for (const base of CANDIDATES){
+    const r = await testImage(base + anchor);
+    if (r.ok) return base;
+  }
+  return null;
+}
+
+let ASSETS = null;
+let BOARD_IMG, POKEBALL, IMG_WATER, IMG_FIRE, IMG_GRASS, IMG_ELEC;
+
+/* ========= UTILS ========= */
+const $ = sel => document.querySelector(sel);
+const el = (tag, cls) => { const n=document.createElement(tag); if(cls) n.className=cls; return n;}
+const rnd = (a,b)=> Math.floor(Math.random()*(b-a+1))+a;
+
+function logItem(html, type=''){
+  const it = el('div','it');
+  if(type) it.innerHTML = `<span class="tag ${type}">•</span>`+html;
+  else it.innerHTML = html;
+  $('#log').prepend(it);
+}
+
+/* ========= STARTERS ========= */
+let STARTERS = []; // será preenchido após detectar caminhos
+
+/* ========= ESTADO ========= */
+const Game = {
+  players: [
+    { id:'P1', berries:100, pos:0, starter:null, captured:0, elmColor:'#8ea3ff' },
+    { id:'P2', berries:100, pos:0, starter:null, captured:0, elmColor:'#ff9fe0' },
+  ],
+  nPlayers: 1,
+  turn: 0,
+  round: 1,
+  roundLimit: 10,
+  positionCount: 41,
+  path: [],
+  zones: {},
+  battleCtx: null,
+};
+
+/* ========= TRAJETO ========= */
+function buildPath(){
+  const board = $('#stage').getBoundingClientRect();
+  const pad = 10;
+  const x0 = pad, y0 = pad;
+  const w = board.width  - pad*2;
+  const h = board.height - pad*2;
+
+  const topN=12, rightN=9, bottomN=12, leftN=8; // soma 41
+  const pts = [];
+
+  for(let i=0;i<topN;i++){ const t = i/(topN-1); pts.push({x: x0 + t*w, y: y0}); }
+  for(let i=1;i<=rightN;i++){ const t = i/(rightN); pts.push({x: x0 + w, y: y0 + t*h}); }
+  for(let i=1;i<=bottomN;i++){ const t = i/(bottomN); pts.push({x: x0 + w - t*w, y: y0 + h}); }
+  for(let i=1;i<=leftN;i++){ const t = i/(leftN); pts.push({x: x0, y: y0 + h - t*h}); }
+
+  Game.path = pts;
+
+  const dots = $('#pathDots'); dots.innerHTML='';
+  pts.forEach(p=>{
+    const d = el('div','path-dot');
+    d.style.left = (p.x)+'px'; d.style.top  = (p.y)+'px';
+    dots.appendChild(d);
+  });
+}
+
+/* ========= ZONAS ========= */
+function seedZones(){
+  const Z = {};
+  for(let i=0;i<Game.positionCount;i++) Z[i]='neutral';
+  [3,7,14,20,27,34].forEach(i=>Z[i]='bonus');
+  [5,12,18,23,31,38].forEach(i=>Z[i]='loss');
+  [9,16,22,29,36].forEach(i=>Z[i]='battle');
+  [2,19,33].forEach(i=>Z[i]='capture');
+  Game.zones = Z;
+}
+
+/* ========= TOKENS ========= */
+function ensureTokens(){
+  document.querySelectorAll('.token').forEach(n=>n.remove());
+  for(let i=0;i<Game.nPlayers;i++){
+    const p = Game.players[i];
+    const t = el('div','token '+(i===1?'p2':'p1')); t.id='tok_'+p.id;
+    const b = el('div','bubble'); b.style.outline=`3px solid ${p.starter?.color || p.elmColor}`;
+    const img = el('img');
+    img.src = p.starter?.img || POKEBALL;
+    img.alt = p.starter?.name || 'Pokéball';
+    img.onerror = ()=>{ img.src = POKEBALL; };
+    const lb = el('div','label'); lb.textContent = p.id;
+    t.appendChild(b); t.appendChild(img); t.appendChild(lb);
+    $('#stage').appendChild(t);
+  }
+  syncTokenPositions(true);
+}
+function syncTokenPositions(inPlace=false){
+  for(let i=0;i<Game.nPlayers;i++){
+    const p = Game.players[i];
+    const tok = $('#tok_'+p.id);
+    const pt = Game.path[p.pos];
+    if(!pt || !tok) continue;
+    if(inPlace){ tok.style.left = pt.x+'px'; tok.style.top  = pt.y+'px'; }
+    else{ animateMove(tok, pt.x, pt.y); }
+  }
+}
+function animateMove(node, x, y){
+  const start = performance.now();
+  const xFrom = parseFloat(node.style.left||x), yFrom = parseFloat(node.style.top||y);
+  function step(t){
+    const k = Math.min(1, (t-start)/320);
+    const e = 1 - Math.pow(1-k,3);
+    node.style.left = (xFrom + (x - xFrom)*e) + 'px';
+    node.style.top  = (yFrom + (y - yFrom)*e) + 'px';
+    if(k<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ========= HUD/Mensagens ========= */
+function setMsg(txt){ $('#msg').textContent = txt; }
+function updateHeader(){
+  $('#turnPill').textContent = `Vez de ${Game.players[Game.turn].id}.`;
+  $('#hudRound').textContent = Game.round;
+  $('#hudRoundLim').textContent = Game.roundLimit;
+  $('#p1b').textContent = Game.players[0].berries;
+  $('#hudP2').style.display = (Game.nPlayers===2?'inline-block':'none');
+  if(Game.nPlayers===2) $('#p2b').textContent = Game.players[1].berries;
+}
+
+/* ========= REGRAS ========= */
+function startGame(){
+  Game.turn = 0; Game.round=1;
+  for(const p of Game.players){ p.berries=100; p.pos=0; p.captured=0; }
+  seedZones(); ensureTokens(); updateHeader();
+  setMsg('Partida iniciada. Clique em Rolar para andar.');
+  logItem('Partida iniciada.', 'ok');
+}
+
+function showDice(a,b){
+  const D1 = $('#d1'), D2=$('#d2');
+  D1.classList.add('roll'); D2.classList.add('roll');
+  D1.textContent='•'; D2.textContent='•';
+  setTimeout(()=>{ D1.textContent=a; D2.textContent=b; D1.classList.remove('roll'); D2.classList.remove('roll'); }, 500);
+}
+
+function rollDice(){
+  const d1 = rnd(1,6), d2 = rnd(1,6);
+  showDice(d1,d2);
+
+  const P = Game.players[Game.turn];
+
+  if(P.captured>0){
+    P.captured--;
+    setMsg(`${P.id} está capturado! Passa a vez (${P.captured} restantes).`);
+    logItem(`${P.id} perdeu o turno (capturado).`,'warn');
+    nextTurn();
+    return;
+  }
+
+  const steps = d1 + d2;
+  logItem(`${P.id} rolou ${d1}+${d2} = ${steps}.`);
+
+  movePlayer(P, steps, ()=> resolveSquare(P) );
+}
+
+function movePlayer(P, steps, done){
+  let i=0;
+  function hop(){
+    if(i>=steps){ done(); return; }
+    P.pos = (P.pos+1) % Game.positionCount;
+    syncTokenPositions(false);
+    i++; setTimeout(hop, 140);
+  }
+  hop();
+}
+
+function resolveSquare(P){
+  const kind = Game.zones[P.pos] || 'neutral';
+  if(kind==='neutral'){
+    setMsg('Zona neutra. Nada acontece.'); logItem(`${P.id} caiu em zona neutra.`);
+    nextTurn();
+  }
+  else if(kind==='bonus'){
+    const v = rnd(10,50);
+    P.berries += v; updateHeader();
+    setMsg(`Bônus! ${P.id} ganhou +${v} berries.`); logItem(`<b>${P.id}</b> recebeu bônus +${v} berries.`, 'ok');
+    nextTurn();
+  }
+  else if(kind==='loss'){
+    const v = rnd(5,25);
+    P.berries = Math.max(0, P.berries - v); updateHeader();
+    setMsg(`Perda! ${P.id} perdeu ${v} berries.`); logItem(`<b>${P.id}</b> perdeu ${v} berries.`, 'bad');
+    checkEndOrNext();
+  }
+  else if(kind==='capture'){
+    P.captured = 2;
+    setMsg(`${P.id} foi capturado! Fica 2 rodadas sem jogar.`); logItem(`${P.id} CAPTURADO por 2 turnos.`, 'bad');
+    nextTurn();
+  }
+  else if(kind==='battle'){
+    openBattle(P);
+  }
+}
+
+/* ========= BATALHA ========= */
+const battleUI = {
+  modal: $('#battle'),
+  oppTxt: $('#battleOpp'),
+  betNo: $('#betNo'), betYes: $('#betYes'),
+  mode1: $('#m1'), mode2: $('#m2'),
+  numGrid: $('#numGrid'),
+  betVal: $('#betVal'), betHint: $('#betHint'),
+  multBase: $('#multBase'), multAdj: $('#multAdj'), multEff: $('#multEff'),
+  summary: $('#battleSummary'),
+  ok: $('#okBattle'),
+};
+
+function edge(m, o){
+  if(!m || !o) return 0;
+  if(m.key==='electric' || o.key==='electric') return 0;
+  if(m.beats===o.key) return 1;
+  if(o.beats===m.key) return -1;
+  return 0;
+}
+
+function openBattle(P){
+  const opp = STARTERS[rnd(0, STARTERS.length-1)];
+  const me  = P.starter;
+
+  Game.battleCtx = {
+    playerIdx: Game.turn,
+    me, opp,
+    bet: false,
+    mode: 1,
+    picks: new Set(),
+    betValue: 10,
+    base: 3.0,
+    adj: edge(me, opp)===1? +0.5 : edge(me, opp)===-1? -0.5 : 0.0,
+  };
+
+  battleUI.oppTxt.textContent = `Oponente: ${opp.name}`;
+  battleUI.betNo.classList.add('active'); battleUI.betYes.classList.remove('active');
+  $('#betBox').style.display='none';
+  battleUI.mode1.classList.add('active'); battleUI.mode2.classList.remove('active');
+
+  battleUI.numGrid.innerHTML='';
+  for(let n=1;n<=9;n++){
+    const b = el('div','numBtn'); b.textContent=n;
+    b.onclick = ()=>{
+      const ctx = Game.battleCtx;
+      if(!ctx.bet) return;
+      if(b.classList.contains('on')){ b.classList.remove('on'); ctx.picks.delete(n); updateBattleCalc(); return; }
+      if((ctx.mode===1 && ctx.picks.size>=1) || (ctx.mode===2 && ctx.picks.size>=2)) return;
+      b.classList.add('on'); ctx.picks.add(n); updateBattleCalc();
+    };
+    battleUI.numGrid.appendChild(b);
+  }
+
+  battleUI.betVal.value = 10;
+  updateBattleCalc();
+  updateBattleSummary();
+  battleUI.modal.classList.add('on');
+}
+
+battleUI.betNo.onclick = ()=>{ Game.battleCtx.bet=false; $('#betBox').style.display='none'; battleUI.betNo.classList.add('active'); battleUI.betYes.classList.remove('active'); updateBattleSummary(); };
+battleUI.betYes.onclick = ()=>{ Game.battleCtx.bet=true; $('#betBox').style.display='block'; battleUI.betYes.classList.add('active'); battleUI.betNo.classList.remove('active'); updateBattleSummary(); };
+
+battleUI.mode1.onclick = ()=>{ Game.battleCtx.mode=1; Game.battleCtx.base=3.0; clearPicks(); battleUI.mode1.classList.add('active'); battleUI.mode2.classList.remove('active'); updateBattleCalc(); };
+battleUI.mode2.onclick = ()=>{ Game.battleCtx.mode=2; Game.battleCtx.base=1.8; clearPicks(); battleUI.mode2.classList.add('active'); battleUI.mode1.classList.remove('active'); updateBattleCalc(); };
+
+function clearPicks(){
+  Game.battleCtx.picks.clear();
+  document.querySelectorAll('.numBtn.on').forEach(n=>n.classList.remove('on'));
+}
+battleUI.betVal.oninput = ()=> updateBattleCalc();
+
+function updateBattleCalc(){
+  const ctx = Game.battleCtx;
+  const P = Game.players[ctx.playerIdx];
+  const minBet = ctx.mode===1? 10 : 20;
+  const maxBet = 50;
+  let val = parseInt(battleUI.betVal.value||0,10);
+  if(Number.isNaN(val)) val = minBet;
+  if(val < minBet) val = minBet;
+  if(val > maxBet) val = maxBet;
+  if(val > P.berries) val = P.berries;
+  ctx.betValue = val;
+  battleUI.betVal.value = val;
+  battleUI.betHint.textContent = `Mínimo ${minBet} | Máx 50 | Saldo: ${P.berries}`;
+
+  const eff = Math.max(0, (ctx.base + ctx.adj));
+  battleUI.multBase.textContent = ctx.base.toFixed(1);
+  battleUI.multAdj.textContent  = (ctx.adj>=0? '+' : '') + ctx.adj.toFixed(1);
+  battleUI.multEff.textContent  = eff.toFixed(1);
+
+  updateBattleSummary();
+}
+
+function updateBattleSummary(){
+  const ctx = Game.battleCtx;
+  const picks = Array.from(ctx.picks).sort((a,b)=>a-b);
+  const txt =
+`Você: ${ctx.me.name}
+Oponente: ${ctx.opp.name}
+Aposta: ${ctx.bet? 'SIM' : 'NÃO'}
+${ctx.bet ? `Modo: ${ctx.mode===1?'1 número':'2 números'}
+Números: ${picks.length? picks.join(', '): '—'}
+Valor: ${ctx.betValue} (base ${ctx.base.toFixed(1)}x, ajuste ${ctx.adj>=0?'+':''}${ctx.adj.toFixed(1)}x, total ${(ctx.base+ctx.adj).toFixed(1)}x)` : ''}`;
+  battleUI.summary.textContent = txt;
+}
+
+battleUI.ok.onclick = ()=> resolveBattle();
+
+function resolveBattle(){
+  const ctx = Game.battleCtx;
+  const P = Game.players[ctx.playerIdx];
+
+  if(ctx.bet){
+    const expectedPickCount = ctx.mode===1?1:2;
+    if(ctx.picks.size !== expectedPickCount){
+      alert(`Selecione exatamente ${expectedPickCount} número(s) para apostar.`); return;
+    }
+    const minBet = ctx.mode===1?10:20;
+    if(ctx.betValue < minBet){ alert(`Aposta mínima: ${minBet}.`); return; }
+    if(ctx.betValue > 50){ alert(`Aposta máxima por rodada: 50.`); return; }
+    if(ctx.betValue > P.berries){ alert(`Saldo insuficiente.`); return; }
+  }
+
+  const numeroSorteado = rnd(1,9);
+  const picks = Array.from(ctx.picks);
+  const betHit = ctx.bet ? picks.includes(numeroSorteado) : false;
+
+  const e = edge(ctx.me, ctx.opp);
+  let chance = 0.5 + (e===1?0.25: (e===-1?-0.25:0));
+  let venceu = Math.random() < chance;
+
+  let delta = 0;
+  let multEff = Math.max(0, ctx.base + ctx.adj);
+
+  if(ctx.bet){
+    if(betHit){
+      delta = Math.floor(ctx.betValue * multEff);
+      P.berries += delta;
+    }else{
+      delta = -ctx.betValue;
+      P.berries = Math.max(0, P.berries + delta);
+    }
+  }
+  updateHeader();
+
+  const betTxt = ctx.bet
+    ? `Aposta ${ctx.betValue} em ${ctx.mode===1?'1 número':'2 números'} [${picks.join(', ')}], sorteado: <b>${numeroSorteado}</b> → ${betHit?'<span class="ok">pagou</span>':'<span class="bad">perdeu</span>'} ${delta>0?`(+${delta})`:`(${delta})`} (mult ${(multEff).toFixed(1)}x)`
+    : 'Sem aposta (resultado simbólico).';
+
+  const fightTxt = `Batalha: ${Game.players[ctx.playerIdx].id} (${ctx.me.name}) vs ${ctx.opp.name} — ` + (venceu?`<b class="ok">vitória</b>`:`<b class="bad">derrota</b>`) + ` (vantagem: ${e===1?'favorável':e===-1?'desfavorável':'neutra'})`;
+
+  setMsg(stripTags(`${fightTxt} • ${betTxt}`));
+  logItem(fightTxt, venceu?'ok':'bad');
+  logItem(betTxt, delta>=0?'ok':'bad');
+
+  $('#battle').classList.remove('on');
+  checkEndOrNext();
+}
+
+function stripTags(s){ return s.replace(/<[^>]*>/g,''); }
+
+function checkEndOrNext(){
+  const P = Game.players[Game.turn];
+  if(P.berries<=0){ setMsg(`${P.id} ficou sem berries. Fim!`); logItem(`${P.id} ficou sem berries.`, 'bad'); endGame(); return; }
+  if(Game.round>=Game.roundLimit && Game.turn===Game.nPlayers-1){
+    const p1=Game.players[0].berries, p2=Game.players[1].berries;
+    let msg = `Fim das ${Game.roundLimit} rodadas. `;
+    if(Game.nPlayers===2){
+      msg += (p1===p2?`Empate (${p1} x ${p2}).` : (p1>p2?`P1 venceu (${p1} x ${p2}).`:`P2 venceu (${p2} x ${p1}).`));
+    }else{
+      msg += `Seu saldo: ${p1}.`;
+    }
+    setMsg(msg); logItem(msg, 'warn'); endGame(); return;
+  }
+  nextTurn();
+}
+
+function endGame(){ logItem('Partida finalizada.', 'warn'); }
+function nextTurn(){ Game.turn = (Game.turn+1) % Game.nPlayers; if(Game.turn===0) Game.round++; updateHeader(); }
+
+/* ========= MODAL CONFIG ========= */
+function renderStarters(gridId, who){
+  const grid = $(gridId); grid.innerHTML='';
+  STARTERS.forEach(st=>{
+    const s = el('div','starter'); s.dataset.key=st.key; s.style.outlineColor=st.color;
+    const img = el('img'); img.src = st.img; img.alt = st.name; img.onerror = ()=>{ img.src = POKEBALL; };
+    const cap = el('div','cap'); cap.innerHTML = `<b>${st.name}</b>`;
+    s.appendChild(img); s.appendChild(cap);
+    s.onclick = ()=>{
+      grid.querySelectorAll('.starter').forEach(n=>n.classList.remove('selected'));
+      s.classList.add('selected');
+      Game.players[who].starter = st;
+    };
+    grid.appendChild(s);
+  });
+}
+function openCfg(){ $('#cfg').classList.add('on'); }
+function closeCfg(){ $('#cfg').classList.remove('on'); }
+
+$('#t1').onclick = ()=>{ Game.nPlayers=1; $('#t1').classList.add('active'); $('#t2').classList.remove('active'); $('#segP2').style.opacity='.35'; updateHeader(); };
+$('#t2').onclick = ()=>{ Game.nPlayers=2; $('#t2').classList.add('active'); $('#t1').classList.remove('active'); $('#segP2').style.opacity='1'; updateHeader(); };
+$('#okCfg').onclick = ()=>{
+  if(!Game.players[0].starter) Game.players[0].starter = STARTERS[0];
+  if(Game.nPlayers===2 && !Game.players[1].starter) Game.players[1].starter = STARTERS[1];
+  closeCfg(); startGame();
+};
+
+/* ========= BOOT: detecta caminho e inicia ========= */
+async function boot(){
+  ASSETS = await detectAssetsBase('pokeball.png'); // troque a âncora se preferir
+  if(!ASSETS){
+    const warn = document.createElement('div');
+    warn.style = "position:fixed;left:12px;bottom:12px;background:#ff6b6b;color:#111;padding:10px 14px;border-radius:10px;font-weight:900;z-index:9999";
+    warn.textContent = "Não encontrei a pasta de imagens. Verifique src/static (nomes e caminho).";
+    document.body.appendChild(warn);
+    console.error("Falha ao localizar assets. Testei:", CANDIDATES);
+    return;
+  }
+  BOARD_IMG = ASSETS + 'img.png';
+  POKEBALL  = ASSETS + 'pokeball.png';
+  IMG_WATER = ASSETS + 'starter_water.png';
+  IMG_FIRE  = ASSETS + 'starter_fire.png';
+  IMG_GRASS = ASSETS + 'starter_grass.png';
+  IMG_ELEC  = ASSETS + 'starter_electric.png';
+
+  // Preenche starters agora que temos os caminhos
+  STARTERS = [
+    {key:'water',  name:'Água',   img:IMG_WATER,  beats:'fire',  loses:'electric', color:'#67d3ff'},
+    {key:'fire',   name:'Fogo',   img:IMG_FIRE,   beats:'grass', loses:'water',    color:'#ff9c67'},
+    {key:'grass',  name:'Planta', img:IMG_GRASS,  beats:'water', loses:'fire',     color:'#7aff9c'},
+    {key:'electric',name:'Elétrico', img:IMG_ELEC, beats:null,    loses:null,       color:'#ffe564'},
+  ];
+
+  // Aplica board e renderiza UI inicial
+  const board = $('#board');
+  board.style.backgroundImage = `url('${BOARD_IMG}')`;
+  board.style.backgroundSize = 'cover';
+
+  renderStarters('#gridP1',0);
+  renderStarters('#gridP2',1);
+  buildPath();
+  ensureTokens();
+  setMsg('Escolha quantos jogadores e os starters para começar.');
+  updateHeader();
+}
+window.addEventListener('resize', ()=>{ buildPath(); syncTokenPositions(true); });
+window.addEventListener('DOMContentLoaded', boot);
+
+// Botões principais
+$('#btnStart').onclick = ()=> openCfg();
+$('#btnRoll').onclick  = ()=> rollDice();
+</script>
+</body>
+</html>
