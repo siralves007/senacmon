@@ -1,15 +1,11 @@
-"""Game URL configuration."""
-
 from django.urls import path
+from . import views
 
-from game.views import start, state, roll, battle
-
-app_name = 'game'
+app_name = "game"
 
 urlpatterns = [
-    path("start/", start.start_view, name="start"),
-    path("state/", state.state_view, name="state"),
-    path("roll/", roll.roll_view, name="roll"),
-    path("battle/", battle.battle_view, name="battle"),
-    path("battle/resolve/", battle.battle_resolve_view, name="battle_resolve"),
+    path("start/", views.start_view, name="start"),      # exemplo
+    path("state/", views.state_view, name="state"),      # exemplo
+    path("roll/", views.roll_view, name="roll"),         # exemplo
+    path("battle/", views.battle_view, name="battle"),   # exemplo
 ]
