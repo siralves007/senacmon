@@ -9,7 +9,6 @@ class Mapa(models.Model):
 
     class Meta:
         db_table = "game_mapa"
-
     def __str__(self):
         return f"{self.nome} ({self.tamanho_total})"
 

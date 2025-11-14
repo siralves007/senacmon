@@ -1,48 +1,321 @@
 {% extends "base.html" %}
-{% block title %}Sobre o Senacmon{% endblock %}
+{% load static %}
+{% block title %}Sobre o Senacmon - O Jogo{% endblock %}
 
 {% block content %}
-<div class="card shadow-sm">
-  <div class="card-body">
-    <h1 class="h4 mb-3">Sobre o Senacmon</h1>
+<div class="container py-4">
+    <!-- Header Section -->
+    <div class="text-center mb-5">
+        <h1 class="h2 fw-bold text-primary mb-3">Sobre o Senacmon</h1>
+        <p class="lead text-muted mx-auto" style="max-width: 600px;">
+            Um jogo de tabuleiro digital que combina estratégia, sorte e elementos do universo Pokémon em uma experiência educativa.
+        </p>
+    </div>
 
-    <p class="mb-3">
-      O Senacmon é um jogo de tabuleiro digital pensado como projeto de programação.
-      A ideia é treinar lógica, tomada de decisão e registro de dados enquanto o
-      jogador se diverte em uma partida solo.
-    </p>
+    <!-- Main Introduction -->
+    <div class="card shadow-sm mb-5">
+        <div class="card-body p-4">
+            <h2 class="h4 mb-3">O que é o Senacmon?</h2>
+            <p class="mb-3">
+                O <strong class="text-primary">Senacmon</strong> é um jogo de tabuleiro digital desenvolvido como projeto educacional
+                de programação. A ideia principal é treinar lógica, tomada de decisão e registro de dados enquanto
+                o jogador se diverte em uma partida solo inspirada no universo Pokémon.
+            </p>
+            <div class="d-flex gap-2 flex-wrap">
+                <span class="badge bg-primary">Jogo Solo</span>
+                <span class="badge bg-success">Elementos Pokémon</span>
+                <span class="badge bg-info">Projeto Educacional</span>
+            </div>
+        </div>
+    </div>
 
-    <h2 class="h5 mt-3 mb-2">Como o jogo funciona</h2>
-    <ul class="mb-3">
-      <li>Modo solo: um jogador por sessão.</li>
-      <li>Escolha de um Senacmon inicial com elemento água, fogo ou planta.</li>
-      <li>Avanço em um mapa de casas numeradas, definido por rolagem de dado (1 a 6).</li>
-      <li>Cada casa do mapa tem um tipo de zona: neutra, bônus, perda, batalha ou captura.</li>
-      <li>Nas batalhas, o sistema usa vantagem elemental (água &gt; fogo, fogo &gt; planta, planta &gt; água).</li>
-      <li>O jogador pode apostar berries (moeda do jogo) ou apenas batalhar sem aposta.</li>
-      <li>Existe chance de captura pela Equipe Rocket, que bloqueia o jogador por 2 rodadas.</li>
-      <li>A partida termina por limite de rodadas ou quando o saldo de berries chega a zero.</li>
-    </ul>
+    <!-- Game Objectives -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="h4 text-center mb-4">Objetivo do Jogo</h2>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border">
+                <div class="card-body text-center p-3">
+                    <h5 class="card-title text-primary">Domine a Arena</h5>
+                    <p class="card-text small">
+                        Prove que você é o melhor treinador enfrentando desafios estratégicos
+                        e superando todos os obstáculos do caminho.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border">
+                <div class="card-body text-center p-3">
+                    <h5 class="card-title text-primary">Gerencie Recursos</h5>
+                    <p class="card-text small">
+                        Administre suas berries com sabedoria para apostas estratégicas
+                        e aquisição de vantagens durante as partidas.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border">
+                <div class="card-body text-center p-3">
+                    <h5 class="card-title text-primary">Desenvolva Estratégias</h5>
+                    <p class="card-text small">
+                        Aprenda com cada partida, desenvolva novas abordagens e
+                        torne-se um mestre no mundo Senacmon.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <h2 class="h5 mt-3 mb-2">Conceitos principais</h2>
-    <ul class="mb-3">
-      <li><strong>Berries:</strong> moeda usada para apostas, o jogador inicia com 100.</li>
-      <li><strong>Zona:</strong> define o que acontece na casa (ganhar, perder, batalhar, ser capturado ou nada).</li>
-      <li><strong>Histórico:</strong> registro dos eventos de cada rodada, como movimentos, bônus, perdas e batalhas.</li>
-    </ul>
+    <!-- How It Works Accordion -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="h4 text-center mb-4">Como o Jogo Funciona</h2>
+        </div>
+        <div class="col-lg-10 mx-auto">
+            <div class="accordion" id="gameMechanicsAccordion">
+                <!-- Accordion Item 1 -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#mechanic1">
+                            Sistema de Jogo Solo
+                        </button>
+                    </h2>
+                    <div id="mechanic1" class="accordion-collapse collapse" data-bs-parent="#gameMechanicsAccordion">
+                        <div class="accordion-body">
+                            <p>O Senacmon é uma experiência solo onde você joga em sessões individuais:</p>
+                            <ul class="mb-0">
+                                <li>Um jogador por sessão de jogo</li>
+                                <li>Progresso salvo automaticamente</li>
+                                <li>Foco em estratégia e tomada de decisão</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
 
-    <h2 class="h5 mt-3 mb-2">Por trás das telas</h2>
-    <p class="mb-2">
-      Este sistema foi desenvolvido em <strong>Python/Django</strong>, com HTML e CSS no
-      frontend. O domínio do jogo foi organizado em entidades como Jogador, Partida,
-      Mapa, Batalha e Transações de Berries, permitindo registrar de forma estruturada
-      o que acontece em cada rodada.
-    </p>
+                <!-- Accordion Item 2 -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#mechanic2">
+                            Escolha do Seu Senacmon
+                        </button>
+                    </h2>
+                    <div id="mechanic2" class="accordion-collapse collapse" data-bs-parent="#gameMechanicsAccordion">
+                        <div class="accordion-body">
+                            <p>Selecione seu companheiro inicial baseado em três elementos:</p>
+                            <div class="row text-center">
+                                <div class="col-md-4 mb-2">
+                                    <h6>Água</h6>
+                                    <p class="small text-muted mb-0">Vantagem sobre Fogo</p>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <h6>Fogo</h6>
+                                    <p class="small text-muted mb-0">Vantagem sobre Planta</p>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <h6>Planta</h6>
+                                    <p class="small text-muted mb-0">Vantagem sobre Água</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    <p class="mb-0 text-muted">
-      O objetivo do projeto é unir prática de programação, modelagem de domínio
-      e diversão em um mesmo ambiente.
-    </p>
-  </div>
+                <!-- Accordion Item 3 -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#mechanic3">
+                            Exploração do Mapa
+                        </button>
+                    </h2>
+                    <div id="mechanic3" class="accordion-collapse collapse" data-bs-parent="#gameMechanicsAccordion">
+                        <div class="accordion-body">
+                            <p>Navegue por um mapa dinâmico com diferentes tipos de zonas:</p>
+                            <div class="row">
+                                <div class="col-sm-6 mb-2">
+                                    <strong>Zona Bônus:</strong> Ganhe berries extras
+                                </div>
+                                <div class="col-sm-6 mb-2">
+                                    <strong>Zona Perda:</strong> Perda de recursos
+                                </div>
+                                <div class="col-sm-6 mb-2">
+                                    <strong>Zona Batalha:</strong> Enfrente desafios
+                                </div>
+                                <div class="col-sm-6 mb-2">
+                                    <strong>Zona Captura:</strong> Riscos da Equipe Rocket
+                                </div>
+                                <div class="col-sm-6 mb-2">
+                                    <strong>Zona Neutra:</strong> Sem eventos especiais
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion Item 4 -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#mechanic4">
+                            Sistema de Batalhas
+                        </button>
+                    </h2>
+                    <div id="mechanic4" class="accordion-collapse collapse" data-bs-parent="#gameMechanicsAccordion">
+                        <div class="accordion-body">
+                            <p>Enfrente batalhas estratégicas baseadas no sistema de elementos:</p>
+                            <div class="alert alert-info py-2">
+                                <strong>Vantagem Elemental:</strong> Água > Fogo > Planta > Água
+                            </div>
+                            <p>Durante as batalhas, você pode:</p>
+                            <ul class="mb-0">
+                                <li>Apostar Berries para aumentar os riscos e recompensas</li>
+                                <li>Batalhar sem aposta para jogar de forma conservadora</li>
+                                <li>Analisar vantagens elementais para tomar decisões estratégicas</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion Item 5 -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#mechanic5">
+                            Desafios e Riscos
+                        </button>
+                    </h2>
+                    <div id="mechanic5" class="accordion-collapse collapse" data-bs-parent="#gameMechanicsAccordion">
+                        <div class="accordion-body">
+                            <div class="alert alert-warning py-2">
+                                <strong>Cuidado com a Equipe Rocket!</strong> Há chance de ser capturado, bloqueando seu progresso por 2 rodadas.
+                            </div>
+                            <p>Condições de Término da Partida:</p>
+                            <ul class="mb-0">
+                                <li><strong>Vitória:</strong> Complete o objetivo dentro do limite de rodadas</li>
+                                <li><strong>Derrota:</strong> Saldo de berries chega a zero</li>
+                                <li><strong>Limite de Rodadas:</strong> Tempo esgotado</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Concepts -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="h4 text-center mb-4">Conceitos Principais</h2>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-primary h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Berries</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        A moeda do jogo! Você inicia com <strong>100 berries</strong> e as usa para
+                        apostas estratégicas durante as batalhas e para adquirir vantagens.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-success h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">Zonas do Mapa</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Cada casa no mapa tem um tipo específico que determina os eventos
+                        e desafios que você enfrentará durante sua jornada.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-info h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">Histórico</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Registro completo de todos os eventos da partida: movimentos,
+                        bônus, perdas e resultados de batalhas para análise posterior.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Technical Information -->
+    <div class="card bg-light mb-5">
+        <div class="card-body p-4">
+            <h2 class="h4 text-center mb-4">Por Trás das Telas</h2>
+            <div class="row">
+                <div class="col-md-8">
+                    <p class="mb-3">
+                        O Senacmon foi desenvolvido em <strong class="text-primary">Python/Django</strong>,
+                        combinando backend robusto com interface moderna em HTML e CSS.
+                    </p>
+                    <p class="mb-3">
+                        A arquitetura do jogo é organizada em entidades bem definidas que permitem
+                        registrar de forma estruturada tudo o que acontece em cada rodada:
+                    </p>
+                    <div class="row">
+                        <div class="col-sm-6 mb-2">
+                            <strong>Jogador:</strong> Gerenciamento de perfil e progresso
+                        </div>
+                        <div class="col-sm-6 mb-2">
+                            <strong>Partida:</strong> Controle de sessões de jogo
+                        </div>
+                        <div class="col-sm-6 mb-2">
+                            <strong>Mapa:</strong> Navegação e zonas
+                        </div>
+                        <div class="col-sm-6 mb-2">
+                            <strong>Batalha:</strong> Sistema de combate
+                        </div>
+                        <div class="col-sm-6 mb-2">
+                            <strong>Transações:</strong> Controle de berries
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="bg-white p-3 rounded border text-center">
+                        <h5>Python/Django</h5>
+                        <p class="text-muted small mb-0">Tecnologias Principais</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="text-center p-4 bg-primary text-white rounded">
+        <h2 class="h4 mb-3">Pronto para a Aventura?</h2>
+        <p class="mb-3">Junte-se aos treinadores Senacmon e comece sua jornada hoje!</p>
+        {% if user.is_authenticated %}
+            <a href="{% url 'game:start' %}" class="btn btn-light">
+                Iniciar Partida
+            </a>
+        {% else %}
+            <a href="{% url 'accounts:register' %}" class="btn btn-light">
+                Criar Conta
+            </a>
+        {% endif %}
+    </div>
 </div>
+
+<style>
+    .accordion-button:not(.collapsed) {
+        background-color: #e3f2fd;
+        color: #0b4aa6;
+    }
+
+    .accordion-button:focus {
+        box-shadow: 0 0 0 0.25rem rgba(11, 74, 166, 0.25);
+        border-color: #0b4aa6;
+    }
+</style>
+
 {% endblock %}

@@ -38,12 +38,14 @@
   }
 
   .hero-card {
-    max-width: 720px;
+    max-width: 800px;
     width: 100%;
     border-radius: 24px;
     padding: 32px 32px 36px;
     background: #ffffff;
     box-shadow: 0 22px 55px rgba(0, 0, 0, 0.16);
+    position: relative;
+    overflow: hidden;
   }
 
   body[data-theme="dark"] .hero-card {
@@ -55,6 +57,11 @@
   .home-logo {
     max-width: 220px;
     height: auto;
+    transition: transform 0.3s ease;
+  }
+
+  .home-logo:hover {
+    transform: scale(1.05);
   }
 
   .badge-mode {
@@ -83,18 +90,38 @@
     justify-content: center;
     gap: 8px;
     text-decoration: none;
-    transition: 0.15s ease-in-out;
+    transition: all 0.2s ease-in-out;
     width: 200px;
     text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-top: 15px;
+  }
+
+  .btn-go:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+  }
+
+  .btn-go:hover:after {
+    left: 100%;
   }
 
   .btn-go-primary {
     color: #f29b1f;
     border-color: #ffcf6b;
+    background: linear-gradient(135deg, #fff, #fff5e6);
   }
 
   .btn-go-secondary {
     color: #3551a4;
+    background: linear-gradient(135deg, #fff, #f0f4ff);
   }
 
   body[data-theme="dark"] .btn-go {
@@ -107,29 +134,134 @@
   body[data-theme="dark"] .btn-go-primary {
     color: #fbbf24;
     border-color: #fbbf24;
+    background: linear-gradient(135deg, #1e293b, #374151);
   }
 
   body[data-theme="dark"] .btn-go-secondary {
     color: #93c5fd;
+    background: linear-gradient(135deg, #1e293b, #1e3a8a);
   }
 
   .btn-go:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.18);
   }
 
   .btn-go:active {
-    transform: translateY(2px);
+    transform: translateY(1px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
   }
 
   body[data-theme="dark"] .text-muted {
     color: #cbd5e1 !important;
   }
+
+  .pokeball-decoration {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    opacity: 0.05;
+    z-index: 0;
+  }
+
+  .pokeball-1 {
+    top: -30px;
+    right: -30px;
+  }
+
+  .pokeball-2 {
+    bottom: -40px;
+    left: -40px;
+  }
+
+  .welcome-animation {
+    animation: fadeInUp 0.6s ease-out;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .feature-card {
+    padding: 20px 15px;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  body[data-theme="dark"] .feature-card:hover {
+    background: rgba(30, 41, 59, 0.5);
+  }
+
+  .feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .feature-title {
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #1e293b;
+  }
+
+  body[data-theme="dark"] .feature-title {
+    color: #e5e7eb;
+  }
+
+  .feature-description {
+    font-size: 0.85rem;
+    color: #64748b;
+    text-align: center;
+    margin-bottom: 15px;
+    flex-grow: 1;
+  }
+
+  body[data-theme="dark"] .feature-description {
+    color: #94a3b8;
+  }
+
+  @media (max-width: 768px) {
+    .hero-card {
+      margin: 20px;
+      padding: 24px 20px 28px;
+    }
+    .home-logo {
+      max-width: 180px;
+    }
+    .btn-go {
+      width: 180px;
+    }
+    .feature-card {
+      margin-bottom: 20px;
+    }
+  }
 </style>
 
 <div class="home-bg">
-  <div class="hero-card text-center">
+  <div class="hero-card text-center welcome-animation">
+
+    <!-- Decoração de pokébolas -->
+    <img src="{% static 'pokeball.png' %}" alt="Pokéball" class="pokeball-decoration pokeball-1">
+    <img src="{% static 'pokeball.png' %}" alt="Pokéball" class="pokeball-decoration pokeball-2">
 
     <div class="mb-3">
       <img
@@ -150,18 +282,38 @@
         Escolha seu Pokémon inicial, role os dados e enfrente batalhas para provar que você é o melhor treinador da arena.
       </p>
 
-      <div class="d-flex flex-column justify-content-center align-items-center gap-3">
-        <a class="btn-go btn-go-primary" href="{% url 'game:start' %}">
-          Iniciar
-        </a>
-
-        <a class="btn-go btn-go-secondary" href="{% url 'game:state' %}">
-          Status
-        </a>
-
-        <a class="btn-go btn-go-secondary" href="{% url 'accounts:profile' %}">
-          Perfil
-        </a>
+      <!-- Recursos destacados com botões abaixo -->
+      <div class="row mb-4">
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon">🎮</div>
+            <h5 class="feature-title">Batalhas Épicas</h5>
+            <p class="feature-description">Enfrente desafios emocionantes e prove suas habilidades em combates estratégicos.</p>
+            <a class="btn-go btn-go-primary" href="{% url 'game:start' %}">
+              Iniciar Partida
+            </a>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h5 class="feature-title">Estatísticas</h5>
+            <p class="feature-description">Acompanhe seu progresso, vitórias e derrotas para melhorar sua estratégia.</p>
+            <a class="btn-go btn-go-secondary" href="{% url 'game:state' %}">
+              Status do Jogo
+            </a>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon">👤</div>
+            <h5 class="feature-title">Perfil</h5>
+            <p class="feature-description">Gerencie sua conta, personalize seu treinador e veja suas conquistas.</p>
+            <a class="btn-go btn-go-secondary" href="{% url 'accounts:profile' %}">
+              Meu Perfil
+            </a>
+          </div>
+        </div>
       </div>
 
     {% else %}
@@ -171,14 +323,34 @@
         Faça login ou crie sua conta para começar sua jornada como treinador Senacmon.
       </p>
 
-      <div class="d-flex flex-column justify-content-center align-items-center gap-3">
-        <a class="btn-go btn-go-primary" href="{% url 'accounts:login' %}">
-          Entrar para jogar
-        </a>
+      <!-- Recursos destacados com botões abaixo -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="feature-card">
+            <div class="feature-icon">🔑</div>
+            <h5 class="feature-title">Já Tenho Conta</h5>
+            <p class="feature-description">Acesse sua conta de treinador para continuar sua jornada e batalhar pelos rankings.</p>
+            <a class="btn-go btn-go-primary" href="{% url 'accounts:login' %}">
+              Entrar para Jogar
+            </a>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="feature-card">
+            <div class="feature-icon">📝</div>
+            <h5 class="feature-title">Novo Treinador</h5>
+            <p class="feature-description">Crie sua conta para começar sua aventura e descobrir o mundo dos Senacmons.</p>
+            <a class="btn-go btn-go-secondary" href="{% url 'accounts:register' %}">
+              Criar Conta
+            </a>
+          </div>
+        </div>
+      </div>
 
-        <a class="btn-go btn-go-secondary" href="{% url 'accounts:register' %}">
-          Criar conta
-        </a>
+      <div class="mt-4 pt-3 border-top">
+        <p class="small text-muted">
+          Junte-se a milhares de treinadores na maior aventura Senacmon!
+        </p>
       </div>
 
     {% endif %}
